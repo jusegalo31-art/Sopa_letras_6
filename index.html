@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sopa de Letras: Detectives de la Información Confiable | 6° de Primaria</title>
+  <meta name="description" content="Juego interactivo de sopa de letras y preguntas sobre información confiable y pensamiento crítico en internet para estudiantes de 6° de primaria.">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Canvas para fuegos artificiales y confeti -->
+  <canvas id="confetti-canvas"></canvas>
+
+  <div class="app-container">
+    <!-- Header Principal -->
+    <header class="main-header">
+      <div class="header-badge">
+        <span class="badge-icon">🕵️‍♂️</span>
+        <span class="badge-text">Colegio México • 6° de Primaria • Clase Digital</span>
+      </div>
+      <h1 class="main-title">
+        <span class="gradient-text">Detectives Digitales</span>
+        <span class="subtitle-tag">¿Todo en Internet es Verdad?</span>
+      </h1>
+      <p class="mission-desc">
+        Encuentra las palabras ocultas en la cuadrícula y responde las preguntas de verificación para ganar tu <strong>Placa Oficial de Detective de la Información</strong>.
+      </p>
+
+      <!-- Barra de navegación de niveles -->
+      <nav class="levels-nav" aria-label="Selector de niveles">
+        <button class="level-tab active" data-level="1" id="tab-lvl-1">
+          <span class="lvl-number">NIVEL 1</span>
+          <span class="lvl-name">El Entorno Digital</span>
+          <span class="lvl-status" id="status-lvl-1">En curso</span>
+        </button>
+        <button class="level-tab locked" data-level="2" id="tab-lvl-2">
+          <span class="lvl-number">NIVEL 2</span>
+          <span class="lvl-name">Las Amenazas</span>
+          <span class="lvl-status" id="status-lvl-2">🔒 Bloqueado</span>
+        </button>
+        <button class="level-tab locked" data-level="3" id="tab-lvl-3">
+          <span class="lvl-number">NIVEL 3</span>
+          <span class="lvl-name">Criterios de Búsqueda</span>
+          <span class="lvl-status" id="status-lvl-3">🔒 Bloqueado</span>
+        </button>
+        <button class="level-tab locked" data-level="4" id="tab-lvl-4">
+          <span class="lvl-number">NIVEL 4</span>
+          <span class="lvl-name">Pensamiento Crítico</span>
+          <span class="lvl-status" id="status-lvl-4">🔒 Bloqueado</span>
+        </button>
+      </nav>
+    </header>
+
+    <!-- Barra de Estado / Dashboard del Jugador -->
+    <section class="player-dashboard" aria-label="Estadísticas de la partida">
+      <div class="stat-card score-card">
+        <div class="stat-icon">⭐</div>
+        <div class="stat-info">
+          <span class="stat-label">PUNTOS</span>
+          <span class="stat-value" id="score-display">0</span>
+        </div>
+      </div>
+
+      <div class="stat-card words-card">
+        <div class="stat-icon">🔍</div>
+        <div class="stat-info">
+          <span class="stat-label">PALABRAS</span>
+          <span class="stat-value"><span id="found-count">0</span> / <span id="total-words-count">7</span></span>
+        </div>
+      </div>
+
+      <div class="stat-card rank-card">
+        <div class="stat-icon" id="rank-icon">🥉</div>
+        <div class="stat-info">
+          <span class="stat-label">RANGO</span>
+          <span class="stat-value rank-text" id="rank-name">Cadete Digital</span>
+        </div>
+      </div>
+
+      <div class="stat-card timer-card">
+        <div class="stat-icon">⏱️</div>
+        <div class="stat-info">
+          <span class="stat-label">TIEMPO</span>
+          <span class="stat-value" id="timer-display">00:00</span>
+        </div>
+      </div>
+
+      <!-- Controles de Audio y Pistas -->
+      <div class="action-buttons">
+        <button id="hint-btn" class="action-btn hint-btn" title="Cuesta 30 puntos">
+          <span class="btn-icon">💡</span>
+          <span class="btn-text">Pedir Pista <small class="penalty-tag">(-30 pts)</small></span>
+        </button>
+        <button id="sound-btn" class="action-btn icon-only-btn" title="Activar/Desactivar Sonido">
+          <span id="sound-icon">🔊</span>
+        </button>
+        <button id="help-btn" class="action-btn icon-only-btn" title="Cómo jugar">
+          <span>❓</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Notificación flotante de pista o puntuación -->
+    <div id="floating-alert" class="floating-alert hidden"></div>
+
+    <!-- Contenido del Juego: Cuadrícula y Lista de Palabras -->
+    <main class="gameplay-area">
+      <!-- Panel de la Sopa de Letras -->
+      <section class="wordsearch-wrapper">
+        <div class="panel-header">
+          <div class="level-meta">
+            <h2 id="current-level-title" class="level-title">Nivel 1: El entorno digital</h2>
+            <span id="level-subtitle" class="level-focus">Conceptos iniciales sobre la red</span>
+          </div>
+          <div class="grid-directions-badge" id="directions-badge">
+            <span class="dir-icon">🧭</span>
+            <span id="directions-text">Horizontal • Vertical • Diagonal</span>
+          </div>
+        </div>
+
+        <div class="grid-outer-frame">
+          <div id="wordsearch-grid" class="wordsearch-grid" role="grid" aria-label="Sopa de letras interactiva">
+            <!-- Celdas generadas dinámicamente con JavaScript -->
+          </div>
+        </div>
+
+        <div class="grid-footer-tip">
+          <span>💡 <strong>Consejo:</strong> Haz clic y arrastra sobre las letras, o pulsa la primera letra y luego la última para seleccionarla.</span>
+        </div>
+      </section>
+
+      <!-- Panel Lateral: Lista de Palabras y Claves del Detective -->
+      <aside class="sidebar-panel">
+        <div class="words-list-container">
+          <div class="words-list-header">
+            <h3>Palabras por Descubrir</h3>
+            <span class="badge-mini" id="words-left-badge">7 restantes</span>
+          </div>
+          <p class="words-instructions">
+            Al encontrar cada palabra se activará tu <strong>Desafío de Verificación</strong>:
+          </p>
+          <ul id="words-list" class="words-list" aria-label="Lista de palabras a encontrar">
+            <!-- Palabras inyectadas dinámicamente -->
+          </ul>
+        </div>
+
+        <!-- Tarjeta de Conocimiento Rápido -->
+        <div class="detective-guide-card">
+          <div class="guide-header">
+            <span class="guide-icon">🛡️</span>
+            <h4>Regla de Oro del Detective</h4>
+          </div>
+          <p id="level-guide-tip">
+            «Antes de creer o compartir algo en Internet, pregúntate siempre: ¿Quién lo dice? ¿Qué pruebas muestra? ¿Es una opinión o un hecho comprobado?»
+          </p>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <!-- MODAL: Pregunta de Verificación (Aparece al descubrir cada palabra) -->
+  <div id="trivia-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="trivia-word-title">
+    <div class="modal-card trivia-card">
+      <div class="trivia-stamp">
+        <span class="stamp-icon">🎯</span>
+        <span>¡PALABRA ENCONTRADA!</span>
+      </div>
+
+      <div class="trivia-header">
+        <h3 id="trivia-word-title" class="trivia-word">INTERNET</h3>
+        <p class="trivia-level-tag" id="trivia-concept-tag">Desafío de Ciberseguridad y Pensamiento Crítico</p>
+      </div>
+
+      <div class="trivia-question-box">
+        <p id="trivia-question-text" class="question-text">
+          ¿Cargando pregunta...?
+        </p>
+      </div>
+
+      <div id="trivia-options-container" class="options-container">
+        <!-- Opciones inyectadas dinámicamente -->
+      </div>
+
+      <!-- Feedback de la respuesta -->
+      <div id="trivia-feedback" class="trivia-feedback hidden">
+        <div class="feedback-icon" id="feedback-icon">✅</div>
+        <div class="feedback-text-wrap">
+          <h4 id="feedback-title">¡Respuesta Correcta!</h4>
+          <p id="feedback-explanation">Explicación educativa aquí...</p>
+        </div>
+        <button id="trivia-continue-btn" class="continue-btn">
+          Continuar Investigación ➔
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: Instrucciones / Ayuda -->
+  <div id="help-modal" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal-card help-card">
+      <button class="modal-close-btn" id="close-help-btn" aria-label="Cerrar ventana">&times;</button>
+      <div class="help-header">
+        <span class="help-emoji">🕵️‍♀️</span>
+        <h3>Manual del Detective de la Información</h3>
+      </div>
+      <div class="help-content">
+        <div class="help-step">
+          <div class="step-num">1</div>
+          <div class="step-desc">
+            <strong>Busca en la cuadrícula:</strong> Desliza o toca la primera y última letra de una palabra. Pueden estar en horizontal, vertical o diagonal (¡y en niveles avanzados, en diagonal invertida o al revés!).
+          </div>
+        </div>
+        <div class="help-step">
+          <div class="step-num">2</div>
+          <div class="step-desc">
+            <strong>Responde la pregunta del detective:</strong> Cada palabra encontrada desbloquea un reto de selección múltiple sobre noticias falsas, fuentes confiables y ciberseguridad.
+          </div>
+        </div>
+        <div class="help-step">
+          <div class="step-num">3</div>
+          <div class="step-desc">
+            <strong>Usa pistas con cuidado:</strong> Si no encuentras una palabra, pide una pista con el botón 💡, ¡pero ten en cuenta que te costará <strong>30 puntos</strong>!
+          </div>
+        </div>
+        <div class="help-step">
+          <div class="step-num">4</div>
+          <div class="step-desc">
+            <strong>Completa los 4 niveles:</strong> Pasa de Cadete Digital a Maestro de la Verdad y obtén tu Diploma Oficial personalizado.
+          </div>
+        </div>
+      </div>
+      <button class="continue-btn" id="start-playing-btn">¡Entendido, a investigar!</button>
+    </div>
+  </div>
+
+  <!-- MODAL: Felicitación de Nivel Superado -->
+  <div id="level-complete-modal" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal-card celebration-card">
+      <div class="level-badge-burst">🌟</div>
+      <h3 id="complete-level-heading">¡NIVEL COMPLETADO!</h3>
+      <p id="complete-level-sub">Has dominado los conceptos de este sector de la red.</p>
+      
+      <div class="level-stats-summary">
+        <div class="stat-mini">
+          <span class="label">Puntos Nivel</span>
+          <span class="val" id="level-score-stat">+1,050</span>
+        </div>
+        <div class="stat-mini">
+          <span class="label">Precisión Trivia</span>
+          <span class="val" id="level-trivia-stat">100%</span>
+        </div>
+      </div>
+
+      <button id="next-level-btn" class="continue-btn pulse-anim">
+        Siguiente Nivel ➔
+      </button>
+    </div>
+  </div>
+
+  <!-- MODAL: Gran Felicitación Final & Diploma de Detective Digital -->
+  <div id="grand-victory-modal" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal-card diploma-card">
+      <div class="confetti-crown">🎉🏆🎖️</div>
+      <h2 class="victory-title">¡FELICITACIONES, MISIÓN CUMPLIDA!</h2>
+      <p class="victory-subtitle">
+        Has completado los 4 niveles de la investigación y demostrado ser un verdadero guardián contra la desinformación en Internet.
+      </p>
+
+      <!-- Carnet Oficial de Detective Digital (Listo para Imprimir / Compartir) -->
+      <div class="detective-diploma" id="printable-diploma">
+        <div class="diploma-border">
+          <div class="diploma-watermark">VERIFICADO</div>
+          <div class="diploma-top">
+            <div class="seal-icon">🛡️</div>
+            <div>
+              <h3>ACADEMIA DE CIBERDETECTIVES DE LA INFORMACIÓN</h3>
+              <p class="diploma-class">Colegio México • 6° Grado de Primaria</p>
+            </div>
+            <div class="seal-icon">🎓</div>
+          </div>
+
+          <div class="diploma-body">
+            <p class="cert-text">Se otorga con honor el título de:</p>
+            <h4 class="cert-rank">MAESTRO DEL PENSAMIENTO CRÍTICO DIGITAL</h4>
+            
+            <div class="student-name-box">
+              <label for="student-name-input">Nombre del Detective:</label>
+              <input type="text" id="student-name-input" value="Detective Escolar" maxlength="32" />
+            </div>
+
+            <p class="cert-declaration">
+              Por haber identificado con éxito todas las amenazas, bulos, fuentes fidedignas y aplicar el rigor analítico para responder: 
+              <br><em>«¿Todo en Internet es verdad? ¡NO, hay que dudar, verificar y comparar!»</em>
+            </p>
+
+            <div class="diploma-stats-grid">
+              <div class="d-stat">
+                <span class="d-label">Puntaje Total</span>
+                <span class="d-val" id="final-score-val">0</span>
+              </div>
+              <div class="d-stat">
+                <span class="d-label">Preguntas Superadas</span>
+                <span class="d-val" id="final-questions-val">28/28</span>
+              </div>
+              <div class="d-stat">
+                <span class="d-label">Tiempo Total</span>
+                <span class="d-val" id="final-time-val">00:00</span>
+              </div>
+              <div class="d-stat">
+                <span class="d-label">Distinción</span>
+                <span class="d-val stars" id="final-stars-val">⭐⭐⭐⭐⭐</span>
+              </div>
+            </div>
+
+            <div class="diploma-footer">
+              <div class="sign-block">
+                <div class="signature-line">Profesor / Profesora</div>
+                <span>Firma Docente</span>
+              </div>
+              <div class="official-stamp">
+                <div class="stamp-circle">
+                  <span>100%</span>
+                  <span>VERIFICADO</span>
+                </div>
+              </div>
+              <div class="sign-block">
+                <div class="signature-line" id="student-sign-preview">Detective Escolar</div>
+                <span>Firma del Alumno(a)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="victory-actions">
+        <button id="print-diploma-btn" class="action-btn-primary">
+          🖨️ Imprimir / Guardar Diploma
+        </button>
+        <button id="restart-game-btn" class="action-btn-secondary">
+          🔄 Jugar de Nuevo
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
